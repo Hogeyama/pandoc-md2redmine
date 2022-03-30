@@ -79,4 +79,4 @@ run = do
       pure out
 
 debug :: MonadIO m => ByteString -> m ()
-debug s = if True then B.putStr s else pure ()
+debug s = if False then B.putStr s else pure ()
