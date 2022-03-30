@@ -1,6 +1,16 @@
-module W (writeTextile) where
+-- |
+--   Module      : Text.Pandoc.Writers.Textile.Redmine
+--   Copyright   : Copyright (C) 2010-2021 John MacFarlane
+--   License     : GNU GPL, version 2 or above
+--
+--   Maintainer  : Hogeyama <gan13027830@gmail.com>
+--   Stability   : alpha
+--   Portability : portable
+--
+--    Modified version of [Text.Pandoc.Writers.Textile](https://github.com/jgm/pandoc/blob/2.14.0.3/src/Text/Pandoc/Writers/Textile.hs)
+--    for Redmine textile.
+module Text.Pandoc.Writers.Textile.Redmine (writeTextile) where
 
-import Data.Char (isSpace)
 import RIO
 import RIO.List.Partial
 import RIO.State
@@ -66,16 +76,16 @@ withUseTags action = do
 -- | Escape one character as needed for Textile.
 escapeCharForTextile :: Char -> Text
 escapeCharForTextile x = case x of
-  '&' -> "&amp;"
-  '<' -> "&lt;"
-  '>' -> "&gt;"
-  '"' -> "&quot;"
-  '*' -> "&#42;"
-  '_' -> "&#95;"
-  '@' -> "&#64;"
-  '+' -> "&#43;"
-  '-' -> "&#45;"
-  '|' -> "&#124;"
+  -- '&' -> "&amp;"
+  -- '<' -> "&lt;"
+  -- '>' -> "&gt;"
+  -- '"' -> "&quot;"
+  -- '*' -> "&#42;"
+  -- '_' -> "&#95;"
+  -- '@' -> "&#64;"
+  -- '+' -> "&#43;"
+  -- '-' -> "&#45;"
+  -- '|' -> "&#124;"
   '\x2014' -> " -- "
   '\x2013' -> " - "
   '\x2019' -> "'"
@@ -95,6 +105,22 @@ blockToTextile ::
   Block ->
   TW m Text
 blockToTextile _ Null = return ""
+-- 利便性のための hack
+blockToTextile opts (Div (_, ["collapse"], keyvals) bs) = do
+  contents <- blockListToTextile opts bs
+  let mOpen = lookup "open" keyvals
+      mClose = lookup "close" keyvals
+      toggleMessage = case (mOpen, mClose) of
+        (Nothing, Nothing) -> ""
+        (Just open, Nothing) -> "(" <> open <> ")"
+        (Nothing, Just close) -> "(" <> "表示," <> close <> ")"
+        (Just open, Just close) -> "(" <> open <> "," <> close <> ")"
+  -- return . T.unlines $
+  return . T.intercalate "\n" $
+    [ "{{collapse" <> toggleMessage
+    , contents
+    , "}}"
+    ]
 blockToTextile opts (Div attr bs) = do
   let startTag = render Nothing $ tagWithAttrs "div" attr
   let endTag = "</div>"
@@ -104,9 +130,7 @@ blockToTextile opts (Plain inlines) =
   inlineListToTextile opts inlines
 -- title beginning with fig: indicates that the image is a figure
 blockToTextile opts (Para [Image attr txt (src, T.stripPrefix "fig:" -> Just tit)]) = do
-  capt <- blockToTextile opts (Para txt)
-  im <- inlineToTextile opts (Image attr txt (src, tit))
-  return $ im <> "\n" <> capt
+  inlineToTextile opts (Image attr txt (src, tit))
 blockToTextile opts (Para inlines) = do
   useTags <- gets stUseTags
   listLevel <- gets stListLevel
@@ -123,40 +147,25 @@ blockToTextile _ b@(RawBlock f str)
     report $ BlockNotRendered b
     return ""
 blockToTextile _ HorizontalRule = return "<hr />\n"
-blockToTextile opts (Header level (ident, classes, keyvals) inlines) = do
+blockToTextile opts (Header level (_, _, keyvals) inlines) = do
   contents <- inlineListToTextile opts inlines
-  let identAttr = if T.null ident then "" else "#" <> ident
-  let attribs =
-        if T.null identAttr && null classes
-          then ""
-          else "(" <> T.unwords classes <> identAttr <> ")"
   let lang = maybe "" (\x -> "[" <> x <> "]") $ lookup "lang" keyvals
   let styles = maybe "" (\x -> "{" <> x <> "}") $ lookup "style" keyvals
-  let prefix = "h" <> tshow level <> attribs <> styles <> lang <> ". "
+  let prefix = "h" <> tshow level <> styles <> lang <> ". "
   return $ prefix <> contents <> "\n"
-blockToTextile _ (CodeBlock (_, classes, _) str)
-  | any (T.all isSpace) (T.lines str) =
-    return $
-      "<pre" <> classes' <> ">\n" <> escapeStringForXML str
-        <> "\n</pre>\n"
-  where
-    classes' =
-      if null classes
-        then ""
-        else " class=\"" <> T.unwords classes <> "\""
 blockToTextile _ (CodeBlock (_, classes, _) str) =
-  return $ "bc" <> classes' <> ". " <> str <> "\n\n"
+  return . T.intercalate "\n" $
+    [ "<pre><code" <> class' <> ">"
+    , str
+    , "</pre></code>"
+    ]
   where
-    classes' =
-      if null classes
-        then ""
-        else "(" <> T.unwords classes <> ")"
-blockToTextile opts (BlockQuote bs@[Para _]) = do
-  contents <- blockListToTextile opts bs
-  return $ "bq. " <> contents <> "\n\n"
+    class'
+      | T.null (T.unwords classes) = ""
+      | otherwise = " class=\"" <> T.unwords classes <> "\""
 blockToTextile opts (BlockQuote blocks) = do
   contents <- blockListToTextile opts blocks
-  return $ "<blockquote>\n\n" <> contents <> "\n</blockquote>\n"
+  return $ T.unlines $ map ("> " <>) $ T.lines contents
 blockToTextile opts (Table _ blkCapt specs thead tbody tfoot) =
   case toLegacyTable blkCapt specs thead tbody tfoot of
     ([], aligns, widths, headers, rows') | all (== 0) widths -> do
@@ -204,63 +213,34 @@ blockToTextile opts (Table _ blkCapt specs thead tbody tfoot) =
           <> "<tbody>\n"
           <> T.unlines body'
           <> "</tbody>\n</table>\n"
-blockToTextile opts x@(BulletList items) = do
-  oldUseTags <- gets stUseTags
-  let useTags = oldUseTags || not (isSimpleList x)
-  if useTags
-    then do
-      contents <- withUseTags $ mapM (listItemToTextile opts) items
-      return $ "<ul>\n" <> vcat contents <> "\n</ul>\n"
-    else do
-      modify $ \s -> s {stListLevel = stListLevel s <> "*"}
-      level <- gets $ length . stListLevel
-      contents <- mapM (listItemToTextile opts) items
-      modify $ \s -> s {stListLevel = init (stListLevel s)}
-      return $ vcat contents <> (if level > 1 then "" else "\n")
-blockToTextile opts x@(OrderedList attribs@(start, _, _) items) = do
-  oldUseTags <- gets stUseTags
-  let useTags = oldUseTags || not (isSimpleList x)
-  if useTags
-    then do
-      contents <- withUseTags $ mapM (listItemToTextile opts) items
-      return $
-        "<ol" <> listAttribsToString attribs <> ">\n" <> vcat contents
-          <> "\n</ol>\n"
-    else do
-      modify $ \s ->
-        s
-          { stListLevel = stListLevel s <> "#"
-          , stStartNum =
-              if start > 1
-                then Just start
-                else Nothing
-          }
-      level <- gets $ length . stListLevel
-      contents <- mapM (listItemToTextile opts) items
-      modify $ \s ->
-        s
-          { stListLevel = init (stListLevel s)
-          , stStartNum = Nothing
-          }
-      return $ vcat contents <> (if level > 1 then "" else "\n")
+blockToTextile opts (BulletList items) = do
+  modify $ \s -> s {stListLevel = stListLevel s <> "*"}
+  level <- gets $ length . stListLevel
+  contents <- mapM (listItemToTextile opts) items
+  modify $ \s -> s {stListLevel = init (stListLevel s)}
+  return $ vcat contents <> (if level > 1 then "" else "\n")
+blockToTextile opts (OrderedList (start, _, _) items) = do
+  modify $ \s ->
+    s
+      { stListLevel = stListLevel s <> "#"
+      , stStartNum =
+          if start > 1
+            then Just start
+            else Nothing
+      }
+  level <- gets $ length . stListLevel
+  contents <- mapM (listItemToTextile opts) items
+  modify $ \s ->
+    s
+      { stListLevel = init (stListLevel s)
+      , stStartNum = Nothing
+      }
+  return $ vcat contents <> (if level > 1 then "" else "\n")
 blockToTextile opts (DefinitionList items) = do
   contents <- withUseTags $ mapM (definitionListItemToTextile opts) items
   return $ "<dl>\n" <> vcat contents <> "\n</dl>\n"
 
 -- Auxiliary functions for lists:
-
--- | Convert ordered list attributes to HTML attribute string
-listAttribsToString :: ListAttributes -> Text
-listAttribsToString (startnum, numstyle, _) =
-  let numstyle' = camelCaseToHyphenated $ tshow numstyle
-   in ( if startnum /= 1
-          then " start=\"" <> tshow startnum <> "\""
-          else ""
-      )
-        <> ( if numstyle /= DefaultStyle
-              then " style=\"list-style-type: " <> numstyle' <> ";\""
-              else ""
-           )
 
 -- | Convert bullet or ordered list item (list of blocks) to Textile.
 listItemToTextile ::
@@ -294,39 +274,6 @@ definitionListItemToTextile opts (label, items) = do
   return $
     "<dt>" <> labelText <> "</dt>\n"
       <> T.intercalate "\n" (map (\d -> "<dd>" <> d <> "</dd>") contents)
-
--- | True if the list can be handled by simple wiki markup, False if HTML tags will be needed.
-isSimpleList :: Block -> Bool
-isSimpleList x =
-  case x of
-    BulletList items -> all isSimpleListItem items
-    OrderedList (_, sty, _) items ->
-      all isSimpleListItem items
-        && sty `elem` [DefaultStyle, Decimal]
-    _ -> False
-
--- | True if list item can be handled with the simple wiki syntax.  False if
---   HTML tags will be needed.
-isSimpleListItem :: [Block] -> Bool
-isSimpleListItem [] = True
-isSimpleListItem [x] =
-  case x of
-    Plain _ -> True
-    Para _ -> True
-    BulletList _ -> isSimpleList x
-    OrderedList _ _ -> isSimpleList x
-    _ -> False
-isSimpleListItem [x, y] | isPlainOrPara x =
-  case y of
-    BulletList _ -> isSimpleList y
-    OrderedList _ _ -> isSimpleList y
-    _ -> False
-isSimpleListItem _ = False
-
-isPlainOrPara :: Block -> Bool
-isPlainOrPara (Plain _) = True
-isPlainOrPara (Para _) = True
-isPlainOrPara _ = False
 
 -- | Concatenates strings with line breaks between them.
 vcat :: [Text] -> Text
