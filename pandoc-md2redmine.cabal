@@ -1,0 +1,142 @@
+cabal-version:   2.4
+name:            pandoc-md2redmine
+version:         0.1.0.0
+synopsis:        Project Template for Haskell
+description:     See README for more info
+homepage:        https://github.com/Hogeyama/haskell-template
+bug-reports:     https://github.com/Hogeyama/haskell-template/issues
+license:         BSD-3-Clause
+license-file:    LICENSE
+author:          Hogeyama
+maintainer:      Hogeyama <gan13027830@gmail.com>
+copyright:       2021 Hogeyama
+build-type:      Custom
+extra-doc-files:
+  CHANGELOG.md
+  README.md
+
+custom-setup
+  setup-depends:
+    , base
+    , cabal-doctest
+    , hspec
+
+common common-options
+  build-depends:
+    , base  >=4.11.1.0
+    , rio
+
+  ghc-options:
+    -Wall -Wcompat -Widentities -Wincomplete-uni-patterns
+    -Wincomplete-record-updates
+
+  if impl(ghc >=8.0)
+    ghc-options: -Wredundant-constraints
+
+  if impl(ghc >=8.2)
+    ghc-options: -fhide-source-paths
+
+  if impl(ghc >=8.4)
+    ghc-options: -Wmissing-export-lists -Wpartial-fields
+
+  if impl(ghc >=8.8)
+    ghc-options: -Wmissing-deriving-strategies -fwrite-ide-info -hiedir=.hie
+
+  if impl(ghc >=8.10)
+    ghc-options: -Wunused-packages
+
+  default-language:   Haskell2010
+  default-extensions:
+    NoImplicitPrelude
+    BangPatterns
+    BinaryLiterals
+    BlockArguments
+    ConstraintKinds
+    DataKinds
+    DefaultSignatures
+    DeriveDataTypeable
+    DeriveFoldable
+    DeriveLift
+    DeriveTraversable
+    DerivingVia
+    EmptyCase
+    EmptyDataDecls
+    EmptyDataDeriving
+    ExistentialQuantification
+    FlexibleContexts
+    FlexibleInstances
+    FunctionalDependencies
+    GADTs
+    InstanceSigs
+    KindSignatures
+    LambdaCase
+    MultiParamTypeClasses
+    MultiWayIf
+    NamedFieldPuns
+    OverloadedLabels
+    OverloadedStrings
+    PatternSynonyms
+    PolyKinds
+    RankNTypes
+    RecordWildCards
+    ScopedTypeVariables
+    StandaloneDeriving
+    StrictData
+    TupleSections
+    TypeApplications
+    TypeFamilies
+    TypeFamilyDependencies
+    TypeOperators
+    ViewPatterns
+
+library
+  import:          common-options
+
+  -- cabal-fmt: expand lib
+  exposed-modules: MyLib
+  hs-source-dirs:  lib
+  build-depends:   pandoc
+
+executable pandoc-md2redmine
+  import:         common-options
+  main-is:        Main.hs
+  build-depends:  pandoc-md2redmine
+  hs-source-dirs: app
+  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
+
+test-suite spec
+  import:         common-options
+  type:           exitcode-stdio-1.0
+  hs-source-dirs: test/spec
+
+  -- cabal-fmt: expand test -Spec
+  other-modules:  MyLibSpec
+  main-is:        Spec.hs
+
+  -- No need to specify build-tool-depends because we manage them by nix.
+  -- build-tool-depends: hspec-discover:hspec-discover -any
+
+  if impl(ghc >=8.4)
+    ghc-options: -Wno-missing-export-lists
+
+  if impl(ghc >=8.8)
+    ghc-options: -Wno-missing-deriving-strategies
+
+  build-depends:
+    , hspec
+    , pandoc-md2redmine
+    , QuickCheck
+
+test-suite doctest
+  import:         common-options
+  type:           exitcode-stdio-1.0
+  main-is:        Doctest.hs
+  hs-source-dirs: test/doctest
+  ghc-options:    -Wno-missing-import-lists
+  build-depends:  doctest
+
+  if impl(ghc >=8.4)
+    ghc-options: -Wno-missing-export-lists
+
+  if impl(ghc >=8.8)
+    ghc-options: -Wno-missing-deriving-strategies

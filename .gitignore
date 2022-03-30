@@ -1,0 +1,10 @@
+cabal.project.local
+dist-newstyle/
+.stack-work/
+.hie/
+.local/
+.vim/
+.env
+.direnv/
+.ghc.environment.*
+result
