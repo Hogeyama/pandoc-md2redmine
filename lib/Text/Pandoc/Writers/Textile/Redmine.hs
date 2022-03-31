@@ -115,8 +115,8 @@ blockToTextile opts (Div (_, ["collapse"], keyvals) bs) = do
         (Just open, Nothing) -> "(" <> open <> ")"
         (Nothing, Just close) -> "(" <> "表示," <> close <> ")"
         (Just open, Just close) -> "(" <> open <> "," <> close <> ")"
-  -- return . T.unlines $
-  return . T.intercalate "\n" $
+  -- return . T.intercalate "\n" $
+  return . T.unlines $
     [ "{{collapse" <> toggleMessage
     , contents
     , "}}"
@@ -154,10 +154,10 @@ blockToTextile opts (Header level (_, _, keyvals) inlines) = do
   let prefix = "h" <> tshow level <> styles <> lang <> ". "
   return $ prefix <> contents <> "\n"
 blockToTextile _ (CodeBlock (_, classes, _) str) =
-  return . T.intercalate "\n" $
+  return . T.unlines $
     [ "<pre><code" <> class' <> ">"
     , str
-    , "</pre></code>"
+    , "</code></pre>"
     ]
   where
     class'
