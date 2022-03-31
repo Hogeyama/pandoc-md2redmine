@@ -416,9 +416,9 @@ inlineToTextile _ Space = return " "
 inlineToTextile opts (Link (_, cls, _) txt (src, _)) = do
   label <- case txt of
     [Code _ s]
-      | s == src -> return "$"
+      | s == src -> return s
     [Str s]
-      | s == src -> return "$"
+      | s == src -> return s
     _ -> inlineListToTextile opts txt
   let classes =
         if null cls || cls == ["uri"] && label == "$"
