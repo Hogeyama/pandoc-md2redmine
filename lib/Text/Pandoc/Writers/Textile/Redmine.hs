@@ -160,9 +160,7 @@ blockToTextile _ (CodeBlock (_, classes, _) str) =
     , "</code></pre>"
     ]
   where
-    class'
-      | T.null (T.unwords classes) = ""
-      | otherwise = " class=\"" <> T.unwords classes <> "\""
+    class' = " class=\"" <> T.unwords classes <> "\""
 blockToTextile opts (BlockQuote blocks) = do
   contents <- blockListToTextile opts blocks
   return $ T.unlines $ map ("> " <>) $ T.lines contents
