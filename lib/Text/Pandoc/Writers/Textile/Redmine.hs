@@ -155,12 +155,14 @@ blockToTextile opts (Header level (_, _, keyvals) inlines) = do
   return $ prefix <> contents <> "\n"
 blockToTextile _ (CodeBlock (_, classes, _) str) =
   return . T.unlines $
-    [ "<pre><code" <> class' <> ">"
+    [ "<pre>" <> codeOpen
     , str
-    , "</code></pre>"
+    , codeClose <> "</pre>"
     ]
   where
-    class' = " class=\"" <> T.unwords classes <> "\""
+    (codeOpen, codeClose)
+      | T.null (T.unwords classes) = ("", "")
+      | otherwise = ("<code class=\"" <> T.unwords classes <> "\">", "</code>")
 blockToTextile opts (BlockQuote blocks) = do
   contents <- blockListToTextile opts blocks
   return $ T.unlines $ map ("> " <>) $ T.lines contents
