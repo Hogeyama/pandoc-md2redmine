@@ -146,7 +146,7 @@ blockToTextile _ b@(RawBlock f str)
   | otherwise = do
     report $ BlockNotRendered b
     return ""
-blockToTextile _ HorizontalRule = return "<hr />\n"
+blockToTextile _ HorizontalRule = return "\n---\n"
 blockToTextile opts (Header level (_, _, keyvals) inlines) = do
   contents <- inlineListToTextile opts inlines
   let lang = maybe "" (\x -> "[" <> x <> "]") $ lookup "lang" keyvals
