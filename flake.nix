@@ -8,9 +8,13 @@
       url = "github:edolstra/flake-compat";
       flake = false;
     };
+    nix-bundle-elf = {
+      url = "github:Hogeyama/nix-bundle-elf";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { nixpkgs, flake-utils, ... }:
+  outputs = { nixpkgs, flake-utils, nix-bundle-elf, ... }:
     let
       compiler = "ghc8107";
       supportedSystems = [ "x86_64-linux" ];
@@ -28,8 +32,17 @@
         };
       in
       {
-        defaultPackage = pkgs.my-package;
-        devShell = pkgs.my-shell;
+        packages = {
+          default = pkgs.my-package;
+          bundled = nix-bundle-elf.lib.${system}.single-exe {
+            inherit pkgs;
+            name = "pandoc-md2redmine";
+            target = "${pkgs.my-package}/bin/pandoc-md2redmine";
+          };
+        };
+        devShells = {
+          default = pkgs.my-shell;
+        };
       }
     );
 }
