@@ -5,12 +5,12 @@
     nixpkgs.url = "github:nixos/nixpkgs/master";
     flake-utils.url = "github:numtide/flake-utils/master";
     flake-compat = {
-      url = github:edolstra/flake-compat;
+      url = "github:edolstra/flake-compat";
       flake = false;
     };
   };
 
-  outputs = { self, nixpkgs, flake-utils, ...}:
+  outputs = { nixpkgs, flake-utils, ... }:
     let
       compiler = "ghc8107";
       supportedSystems = [ "x86_64-linux" ];
