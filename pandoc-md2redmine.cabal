@@ -111,39 +111,28 @@ executable pandoc-md2redmine
   hs-source-dirs: app
   ghc-options:    -threaded -rtsopts -with-rtsopts=-N
 
--- test-suite spec
---   import:         common-options
---   type:           exitcode-stdio-1.0
---   hs-source-dirs: test/spec
---
---   -- cabal-fmt: expand test -Spec
---   other-modules:  MyLibSpec
---   main-is:        Spec.hs
---
---   -- No need to specify build-tool-depends because we manage them by nix.
---   -- build-tool-depends: hspec-discover:hspec-discover -any
---
---   if impl(ghc >=8.4)
---     ghc-options: -Wno-missing-export-lists
---
---   if impl(ghc >=8.8)
---     ghc-options: -Wno-missing-deriving-strategies
---
---   build-depends:
---     , hspec
---     , pandoc-md2redmine
---     , QuickCheck
---
--- test-suite doctest
---   import:         common-options
---   type:           exitcode-stdio-1.0
---   main-is:        Doctest.hs
---   hs-source-dirs: test/doctest
---   ghc-options:    -Wno-missing-import-lists
---   build-depends:  doctest
---
---   if impl(ghc >=8.4)
---     ghc-options: -Wno-missing-export-lists
---
---   if impl(ghc >=8.8)
---     ghc-options: -Wno-missing-deriving-strategies
+test-suite spec
+  import:         common-options
+  type:           exitcode-stdio-1.0
+  hs-source-dirs: test/spec
+
+  -- cabal-fmt: expand test -Spec
+  other-modules:  Text.Pandoc.Writers.Textile.RedmineSpec
+
+  main-is:        Spec.hs
+
+  -- No need to specify build-tool-depends because we manage them by nix.
+  -- build-tool-depends: hspec-discover:hspec-discover -any
+
+  if impl(ghc >=8.4)
+    ghc-options: -Wno-missing-export-lists
+
+  if impl(ghc >=8.8)
+    ghc-options: -Wno-missing-deriving-strategies -Wno-unused-packages
+
+  build-depends:
+    , hspec
+    , hspec-golden
+    , pandoc
+    , pandoc-md2redmine
+    , QuickCheck

@@ -1,11 +1,10 @@
-module Text.Pandoc.Md2Redmine (run) where
+module Text.Pandoc.Md2Redmine (run, md2redmine) where
 
 import RIO
 import qualified RIO.ByteString as B
 import qualified RIO.Text as T
 import Text.Pandoc as Pandoc hiding (writeTextile)
 import Text.Pandoc.App as Pandoc
-
 import Text.Pandoc.Writers.Textile.Redmine
 
 run :: IO Text
@@ -77,6 +76,18 @@ run = do
       debug . (<> "\n") . encodeUtf8 $ out
 
       pure out
+
+-- | Convert Markdown text to Redmine Textile format (for testing)
+md2redmine :: Text -> IO Text
+md2redmine input =
+  handleError
+    =<< runIO
+      ( do
+          let readerOpts = def {readerExtensions = getDefaultExtensions "markdown"}
+          let writerOpts = def {writerExtensions = getDefaultExtensions "textile"}
+          doc <- readMarkdown readerOpts input
+          writeTextile writerOpts doc
+      )
 
 debug :: MonadIO m => ByteString -> m ()
 debug s = if False then B.putStr s else pure ()

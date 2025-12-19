@@ -8,3 +8,4 @@ dist-newstyle/
 .direnv/
 .ghc.environment.*
 result
+/test/cases/*/actual
