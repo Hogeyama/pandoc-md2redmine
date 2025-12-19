@@ -1,7 +1,7 @@
 cabal-version:   2.4
 name:            pandoc-md2redmine
-version:         0.1.0.0
-synopsis:        Project Template for Haskell
+version:         0.1.0.1
+synopsis:        Markdown to Redmine Textile converter
 description:     See README for more info
 homepage:        https://github.com/Hogeyama/haskell-template
 bug-reports:     https://github.com/Hogeyama/haskell-template/issues
