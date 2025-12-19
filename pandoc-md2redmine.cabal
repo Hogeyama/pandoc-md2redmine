@@ -42,9 +42,6 @@ common common-options
   if impl(ghc >=8.8)
     ghc-options: -Wmissing-deriving-strategies -fwrite-ide-info -hiedir=.hie
 
-  if impl(ghc >=8.10)
-    ghc-options: -Wunused-packages
-
   default-language:   Haskell2010
   default-extensions:
     NoImplicitPrelude
@@ -118,7 +115,6 @@ test-suite spec
 
   -- cabal-fmt: expand test -Spec
   other-modules:  Text.Pandoc.Writers.Textile.RedmineSpec
-
   main-is:        Spec.hs
 
   -- No need to specify build-tool-depends because we manage them by nix.
@@ -128,7 +124,7 @@ test-suite spec
     ghc-options: -Wno-missing-export-lists
 
   if impl(ghc >=8.8)
-    ghc-options: -Wno-missing-deriving-strategies -Wno-unused-packages
+    ghc-options: -Wno-missing-deriving-strategies
 
   build-depends:
     , hspec
