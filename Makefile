@@ -1,35 +1,31 @@
+.ONESHELL:
+
 all: setup build test lint
 
 .PHONY: build
 build:
-	cabal v2-build
+	cabal build
 
 .PHONY: repl
 repl:
-	cabal v2-repl
+	cabal repl
 
 .PHONY: test
-test: doctest spectest
-
-.PHONY: doctest
-doctest:
-	cabal v2-test doctests
-
-.PHONY: spectest
-spectest:
-	cabal v2-test spec
-
-.PHONY: bench
-bench:
-	cabal v2-bench
+test:
+	@r=$$(cabal build spec 2>&1)
+	if [ "$$?" -ne 0 ]; then
+	  echo "$$r"
+	  exit 1
+	fi
+	cabal run spec
 
 .PHONY: clean
 clean:
-	cabal v2-clean
+	cabal clean
 
 .PHONY: doc
 doc:
-	cabal v2-haddock --haddock-hyperlink-source
+	cabal haddock --haddock-hyperlink-source
 
 .PHONY: lint
 lint:
