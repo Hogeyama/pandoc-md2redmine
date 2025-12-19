@@ -153,12 +153,13 @@ blockToTextile opts (Header level (_, _, keyvals) inlines) = do
   let styles = maybe "" (\x -> "{" <> x <> "}") $ lookup "style" keyvals
   let prefix = "h" <> tshow level <> styles <> lang <> ". "
   return $ prefix <> contents <> "\n"
-blockToTextile _ (CodeBlock (_, classes, _) str) =
-  return . T.unlines $
-    [ "<pre>" <> codeOpen
-    , str
-    , codeClose <> "</pre>"
-    ]
+blockToTextile _ (CodeBlock (_, classes, _) str) = do
+  listLevel <- gets stListLevel
+  let baseLines = ["<pre>" <> codeOpen, str, codeClose <> "</pre>"]
+  return $
+    if null listLevel
+      then T.unlines (baseLines <> [""])
+      else T.intercalate "\n" baseLines
   where
     (codeOpen, codeClose)
       | T.null (T.unwords classes) = ("", "")
