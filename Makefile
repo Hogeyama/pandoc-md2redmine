@@ -1,6 +1,6 @@
 .ONESHELL:
 
-all: setup build test lint
+all: build test lint
 
 .PHONY: build
 build:
