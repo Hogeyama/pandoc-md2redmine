@@ -169,7 +169,7 @@ blockToTextile opts (BlockQuote blocks) = do
   return $ T.unlines $ map ("> " <>) $ T.lines contents
 blockToTextile opts (Table _ blkCapt specs thead tbody tfoot) =
   case toLegacyTable blkCapt specs thead tbody tfoot of
-    ([], aligns, widths, headers, rows') | all (== 0) widths -> do
+    ([], aligns, _widths, headers, rows') -> do
       hs <- mapM (fmap (("_. " <>) . stripTrailingNewlines) . blockListToTextile opts) headers
       let cellsToRow cells = "|" <> T.intercalate "|" cells <> "|"
       let header = if all null headers then "" else cellsToRow hs <> "\n"

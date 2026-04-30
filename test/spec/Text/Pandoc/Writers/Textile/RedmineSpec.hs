@@ -20,6 +20,9 @@ spec = do
     it "case03: should handle code blocks with language specification" $
       goldenTest "case03"
 
+    it "case04: should render pipe tables as Textile even when widths are inferred" $
+      goldenTest "case04"
+
 goldenTest :: FilePath -> Golden String
 goldenTest testName = unsafePerformIO $ do
   input <- readFileUtf8 (dir <> "/" <> testName <> "/input.md")
