@@ -14,7 +14,7 @@
     };
   };
 
-  outputs = { nixpkgs, flake-utils, nix-bundle-elf, ... }:
+  outputs = { self, nixpkgs, flake-utils, nix-bundle-elf, ... }:
     let
       compiler = "ghc8107";
       supportedSystems = [ "x86_64-linux" ];
@@ -38,6 +38,12 @@
             inherit pkgs;
             name = "pandoc-md2redmine";
             target = "${pkgs.my-package}/bin/pandoc-md2redmine";
+          };
+          release = import ./nix/release {
+            inherit pkgs;
+            package = pkgs.my-package;
+            bundled = self.packages.${system}.bundled;
+            src = self;
           };
         };
         devShells = {

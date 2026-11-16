@@ -1,0 +1,80 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+.[0-9]+"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@b66b36319cc6fde4ea85edd583b088c65d6b8710
+      - uses: DeterminateSystems/magic-nix-cache-action@1828eb4e5414b8dfe36daae53ea3e4b8c3fdec7a
+
+      - name: Check that the tag matches the package version
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          version=$(sed -n 's/^version: *//p' pandoc-md2redmine.cabal)
+          if [ "$TAG" != "v$version" ]; then
+            echo "tag $TAG does not match version $version in pandoc-md2redmine.cabal" >&2
+            exit 1
+          fi
+
+      # Building the package runs its test suite. Collecting the notices also
+      # checks that the shared libraries the executable loads are exactly the
+      # native components it lists.
+      - name: Build and test the executable, and collect its notices and sources
+        run: nix build .#release --out-link result-release --print-build-logs
+
+      - name: Check the publication set
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          base="pandoc-md2redmine-${TAG}_x86_64-linux"
+          cd result-release
+          sha256sum -c "$base-sha256.txt"
+          tar -tzf "$base.tar.gz" > "$RUNNER_TEMP/contents.txt"
+          for f in "$base/pandoc-md2redmine" "$base/licenses/README.md" \
+                   "$base/licenses/self/" "$base/licenses/ghc/" \
+                   "$base/licenses/haskell/" "$base/licenses/native/"; do
+            grep -qxF "$f" "$RUNNER_TEMP/contents.txt" || { echo "missing $f" >&2; exit 1; }
+          done
+          tar -tf "$base-sources.tar" > "$RUNNER_TEMP/sources.txt"
+          python3 - "$base-components.json" "$RUNNER_TEMP/sources.txt" "$base" <<'EOF'
+          import json, sys
+          components = json.load(open(sys.argv[1]))
+          listed = set(open(sys.argv[2]).read().split())
+          prefix = sys.argv[3] + "-"
+          missing = [p for c in components
+                     for p in [c["source"]["path"]] + [x["path"] for x in c["patches"]]
+                     if prefix + p not in listed]
+          if missing:
+              sys.exit("sources missing from the archive: " + ", ".join(missing))
+          EOF
+
+      - name: Run the bundled executable on a test case
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          base="pandoc-md2redmine-${TAG}_x86_64-linux"
+          mkdir "$RUNNER_TEMP/unpacked"
+          tar -xzf "result-release/$base.tar.gz" -C "$RUNNER_TEMP/unpacked"
+          "$RUNNER_TEMP/unpacked/$base/pandoc-md2redmine" < test/cases/case01/input.md \
+            | diff -u test/cases/case01/golden -
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          # Upload everything to a draft first so the release never appears
+          # with the executable but without its notices or sources.
+          gh release create "$TAG" --draft --verify-tag --generate-notes \
+            --title "$TAG" result-release/*
+          gh release edit "$TAG" --draft=false

@@ -5,6 +5,7 @@
 ### Added
 
 - ` ```mermaid ` code blocks become the `{{mermaid ... }}` macro; a diagram containing `}}` or inside a collapse stays a code block, since the macro would end early there
+- Release archives include the license notices of everything in the executable, and each release provides the corresponding source as `*-sources.tar`
 
 ### Changed
 
