@@ -43,10 +43,10 @@ building pandoc; add it to your NixOS or Home Manager packages, for example.
 ```nix
 pandoc-md2redmine = pkgs.stdenvNoCC.mkDerivation rec {
   pname = "pandoc-md2redmine";
-  version = "0.2.0.0";
+  version = "0.2.0.1";
   src = pkgs.fetchurl {
     url = "https://github.com/Hogeyama/pandoc-md2redmine/releases/download/v${version}/pandoc-md2redmine-v${version}_x86_64-linux.tar.gz";
-    hash = "sha256-oUe6zWR19uzPDeuL0lY43s3RfzMEdVEoAhM7Jg4C3ZI=";
+    hash = "sha256-hrRjbRT29Gwt4iEST/rAOE0kolBd3fH3YPaYomFu/jQ=";
   };
   # The bundled libraries are used as they are.
   dontStrip = true;
