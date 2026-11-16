@@ -78,3 +78,29 @@ jobs:
           gh release create "$TAG" --draft --verify-tag --generate-notes \
             --title "$TAG" result-release/*
           gh release edit "$TAG" --draft=false
+
+      - name: Point the Nix instructions in README.md at this release
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          base="pandoc-md2redmine-${TAG}_x86_64-linux"
+          hash=$(nix hash file --type sha256 --sri "result-release/$base.tar.gz")
+          git fetch origin main
+          git checkout -B main origin/main
+          range='/^<!-- nix-install:begin -->$/,/^<!-- nix-install:end -->$/'
+          sed -i -E \
+            -e "$range s|^( *version = )\"[^\"]*\";|\1\"${TAG#v}\";|" \
+            -e "$range s|^( *hash = )\"sha256-[^\"]*\";|\1\"$hash\";|" \
+            README.md
+          # Fail rather than publish stale instructions if the block moved.
+          block=$(sed -n "$range p" README.md)
+          for line in "version = \"${TAG#v}\";" "hash = \"$hash\";"; do
+            grep -qF "$line" <<<"$block" || { echo "README.md: no '$line' in the nix-install block" >&2; exit 1; }
+          done
+          if git diff --quiet; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "docs: point the Nix instructions at $TAG"
+          git push origin main
