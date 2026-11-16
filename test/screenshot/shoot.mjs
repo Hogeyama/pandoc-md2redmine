@@ -8,6 +8,14 @@ const page = await browser.newPage({ viewport: { width: 960, height: 600 } });
 
 for (const name of readdirSync('/cases').sort()) {
   await page.goto(`${base}/projects/cases/wiki/${name}`);
+  // Open every {{collapse}}, including ones that an opened one reveals.
+  const closed = page.locator('div.wiki-page a.collapsible.icon-collapsed:visible');
+  while (await closed.count() > 0) {
+    await closed.first().click();
+    await page.waitForFunction(() => jQuery(':animated').length === 0);
+  }
+  // Keep the last clicked link from showing its hover style.
+  await page.mouse.move(0, 0);
   // mermaid marks each diagram it has rendered with data-processed.
   await page.waitForFunction(() =>
     [...document.querySelectorAll('.mermaid')].every(e => e.dataset.processed));
