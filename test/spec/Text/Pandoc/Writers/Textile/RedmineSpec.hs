@@ -75,6 +75,9 @@ spec = do
     it "case21: should render grid and multiline tables with a caption as Textile tables" $
       goldenTest "case21"
 
+    it "case22: should turn mermaid code blocks into the mermaid macro where a macro can hold them" $
+      goldenTest "case22"
+
 goldenTest :: FilePath -> Golden String
 goldenTest testName = unsafePerformIO $ do
   input <- readFileUtf8 (dir <> "/" <> testName <> "/input.md")

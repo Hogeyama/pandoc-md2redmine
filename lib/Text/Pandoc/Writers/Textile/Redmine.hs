@@ -307,17 +307,15 @@ blockToTextile opts (Header level (_, _, keyvals) inlines) = do
   let styles = maybe "" (\x -> "{" <> x <> "}") $ lookup "style" keyvals
   let prefix = "h" <> tshow level <> styles <> lang <> ". "
   return $ prefix <> contents <> "\n"
-blockToTextile _ (CodeBlock (_, classes, _) str) = do
-  listLevel <- gets stListLevel
-  let baseLines = ["<pre>" <> codeOpen, str, codeClose <> "</pre>"]
-  return $
-    if null listLevel
-      then T.unlines (baseLines <> [""])
-      else T.intercalate "\n" baseLines
-  where
-    (codeOpen, codeClose)
-      | T.null (T.unwords classes) = ("", "")
-      | otherwise = ("<code class=\"" <> T.unwords classes <> "\">", "</code>")
+-- A diagram stays a code block where the macro could not hold it: a "}}" in
+-- the diagram, or an enclosing collapse, would end the macro early.
+blockToTextile _ (CodeBlock (_, classes, _) str)
+  | "mermaid" `elem` classes = do
+    inCollapse <- gets stInCollapse
+    if inCollapse || "}}" `T.isInfixOf` str
+      then codeBlockToTextile classes str
+      else macroToTextile "mermaid" "" str
+  | otherwise = codeBlockToTextile classes str
 blockToTextile opts (BlockQuote blocks) = do
   contents <- blockListToTextile opts blocks
   return $ T.unlines $ map ("> " <>) $ T.lines contents
@@ -360,13 +358,31 @@ collapseToTextile opts mOpen mClose bs = do
         (Just open, Nothing) -> "(" <> open <> ")"
         (Nothing, Just close) -> "(" <> "表示," <> close <> ")"
         (Just open, Just close) -> "(" <> open <> "," <> close <> ")"
+  macroToTextile "collapse" toggleMessage contents
+
+-- | A block macro: @{{name(args)@, the body, and @}}@ on separate lines.
+macroToTextile :: PandocMonad m => Text -> Text -> Text -> TW m Text
+macroToTextile name args body = do
   listLevel <- gets stListLevel
-  let macroLines = ["{{collapse" <> toggleMessage, contents, "}}"]
+  let macroLines = ["{{" <> name <> args, body, "}}"]
   -- Inside a list, a trailing empty line would end the list.
   return $
     if null listLevel
       then T.unlines macroLines
       else T.intercalate "\n" macroLines
+
+codeBlockToTextile :: PandocMonad m => [Text] -> Text -> TW m Text
+codeBlockToTextile classes str = do
+  listLevel <- gets stListLevel
+  let baseLines = ["<pre>" <> codeOpen, str, codeClose <> "</pre>"]
+  return $
+    if null listLevel
+      then T.unlines (baseLines <> [""])
+      else T.intercalate "\n" baseLines
+  where
+    (codeOpen, codeClose)
+      | T.null (T.unwords classes) = ("", "")
+      | otherwise = ("<code class=\"" <> T.unwords classes <> "\">", "</code>")
 
 -- | Redmine splits macro arguments at commas outside double quotes.
 macroArg :: Text -> Text

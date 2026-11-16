@@ -1,0 +1,28 @@
+text
+
+{{mermaid
+graph TD
+  A-->B
+}}
+
+* item
+{{mermaid
+graph LR
+  C-->D
+}}
+* next
+
+<pre><code class="mermaid">
+graph TD
+  E{{hexagon}}
+</code></pre>
+
+
+{{collapse(diagram)
+<pre><code class="mermaid">
+graph TD
+  F-->G
+</code></pre>
+
+
+}}

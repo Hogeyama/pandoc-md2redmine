@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- ` ```mermaid ` code blocks become the `{{mermaid ... }}` macro; a diagram containing `}}` or inside a collapse stays a code block, since the macro would end early there
+
 ### Changed
 
 - Markdown input recognizes headings, block quotes and lists without a preceding blank line
