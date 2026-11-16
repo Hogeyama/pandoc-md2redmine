@@ -128,6 +128,7 @@ test-suite spec
     ghc-options: -Wno-missing-deriving-strategies
 
   build-depends:
+    , aeson
     , hspec
     , hspec-golden
     , pandoc

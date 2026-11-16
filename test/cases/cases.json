@@ -1,0 +1,112 @@
+[
+  {
+    "title": "CodeBlock in lists (Golden tests)",
+    "cases": [
+      {
+        "name": "case01",
+        "description": "should not add extra blank lines between consecutive list items with code blocks"
+      },
+      {
+        "name": "case02",
+        "description": "should add blank line between code block and header"
+      },
+      {
+        "name": "case03",
+        "description": "should handle code blocks with language specification"
+      },
+      {
+        "name": "case04",
+        "description": "should render pipe tables as Textile even when widths are inferred"
+      }
+    ]
+  },
+  {
+    "title": "Redmine's RedCloth rules (Golden tests)",
+    "cases": [
+      {
+        "name": "case05",
+        "description": "should escape characters that Redmine would take as markup"
+      },
+      {
+        "name": "case06",
+        "description": "should separate inline markup from adjacent Japanese text"
+      },
+      {
+        "name": "case07",
+        "description": "should not insert a space at line breaks between Japanese characters"
+      },
+      {
+        "name": "case08",
+        "description": "should escape delimiters inside markup and use <code> where @ does not work"
+      },
+      {
+        "name": "case09",
+        "description": "should keep table cells on one row and put the caption before the table"
+      },
+      {
+        "name": "case10",
+        "description": "should not emit start numbers of ordered lists"
+      },
+      {
+        "name": "case11",
+        "description": "should end a figure paragraph and link images"
+      },
+      {
+        "name": "case12",
+        "description": "should recognize blocks without a preceding blank line and keep dashes"
+      },
+      {
+        "name": "case13",
+        "description": "should keep all paragraphs of a footnote in the footnote"
+      },
+      {
+        "name": "case14",
+        "description": "should render definition lists without HTML tags"
+      },
+      {
+        "name": "case15",
+        "description": "should link to headings with Redmine's anchor names"
+      },
+      {
+        "name": "case16",
+        "description": "should drop raw HTML that Redmine would show as text"
+      },
+      {
+        "name": "case17",
+        "description": "should render autolinks and link titles"
+      },
+      {
+        "name": "case18",
+        "description": "should ignore a hard line break at the end of a list item or paragraph"
+      },
+      {
+        "name": "case19",
+        "description": "should keep a list going after a collapse macro, and end it before the next block"
+      },
+      {
+        "name": "case20",
+        "description": "should turn <details> into the collapse macro, expanding nested ones"
+      },
+      {
+        "name": "case21",
+        "description": "should render grid and multiline tables with a caption as Textile tables"
+      },
+      {
+        "name": "case22",
+        "description": "should turn mermaid code blocks into the mermaid macro where a macro can hold them"
+      },
+      {
+        "name": "case23",
+        "description": "should start a code block at a fence right after a line of text"
+      },
+      {
+        "name": "case24",
+        "description": "should close an unclosed code fence where its list item ends"
+      },
+      {
+        "name": "case25",
+        "description": "should continue text right after a code block in a list item"
+      }
+    ]
+  }
+]

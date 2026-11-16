@@ -47,16 +47,19 @@ The project uses **golden tests** with `hspec-golden`. Golden tests compare actu
    cabal run -v0 pandoc-md2redmine < test/cases/case04/input.md > test/cases/case04/golden
    ```
 
-3. **Add test to the spec file** (`test/spec/Text/Pandoc/Writers/Textile/RedmineSpec.hs`):
-   ```haskell
-   it "case04: description of what this tests" $
-     goldenTest "case04"
+3. **List the case in `test/cases/cases.json`**, under the group it belongs to.
+   The spec generates one test per entry, named `case04: <description>`:
+   ```json
+   { "name": "case04", "description": "should describe what this tests" }
    ```
+   A test fails if a directory under `test/cases/` is missing from this file.
 
 4. **Run tests to verify**:
    ```bash
    make test
    ```
+
+5. **Take the screenshots** with `make screenshots` (see below).
 
 ### When Tests Fail
 
@@ -79,8 +82,9 @@ cp test/cases/caseXX/actual test/cases/caseXX/golden
 ### Screenshots of the golden files
 
 Each `test/cases/caseXX/redmica.png` shows how RedMica renders that case's
-`golden`. **Whenever you add or update a golden file, retake the screenshots**
-and commit them with it:
+`golden`, and `test/cases/README.md` lists them all with the descriptions from
+`cases.json`. **Whenever you add or update a golden file, or change
+`cases.json`, retake the screenshots** and commit them with it:
 
 ```bash
 make screenshots
@@ -110,6 +114,8 @@ test/
     case01/golden                      # Expected output
     case01/actual                      # Generated when test fails
     case01/redmica.png                 # Screenshot of golden on RedMica
+    cases.json                         # Names and descriptions of the cases
+    README.md                          # Generated list of the screenshots
   screenshot/                          # Docker setup for `make screenshots`
   spec/
     Text/Pandoc/Writers/Textile/
