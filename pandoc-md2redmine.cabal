@@ -1,6 +1,6 @@
 cabal-version:   2.4
 name:            pandoc-md2redmine
-version:         0.2.0.1
+version:         0.2.0.2
 synopsis:        Markdown to Redmine Textile converter
 description:     See README for more info
 homepage:        https://github.com/Hogeyama/pandoc-md2redmine

@@ -1,11 +1,15 @@
 # Revision history for pandoc-md2redmine
 
-## Unreleased
+## 0.2.0.2 -- 2026-11-17
 
 ### Changed
 
 - The release executable is reproducible: the archive inside the self-extracting bundle no longer records build times or the build machine's file order
 - The release archive includes the license notice and source of nix-bundle-elf, which generates the self-extracting script
+
+### Fixed
+
+- The package homepage and bug tracker point at this repository instead of the template it started from
 
 ## 0.2.0.1 -- 2026-11-17
 
