@@ -33,6 +33,34 @@ ln -s ~/.local/share/pandoc-md2redmine/bin/pandoc-md2redmine ~/.local/bin/pandoc
 `--extract` refuses an existing directory. To update, remove
 `~/.local/share/pandoc-md2redmine` first and run the commands again.
 
+### Nix
+
+The release workflow keeps `version` and `hash` below pointing at the latest
+release. The package installs the executable from GitHub Releases without
+building pandoc; add it to your NixOS or Home Manager packages, for example.
+
+<!-- nix-install:begin -->
+```nix
+pandoc-md2redmine = pkgs.stdenvNoCC.mkDerivation rec {
+  pname = "pandoc-md2redmine";
+  version = "0.2.0.0";
+  src = pkgs.fetchurl {
+    url = "https://github.com/Hogeyama/pandoc-md2redmine/releases/download/v${version}/pandoc-md2redmine-v${version}_x86_64-linux.tar.gz";
+    hash = "sha256-oUe6zWR19uzPDeuL0lY43s3RfzMEdVEoAhM7Jg4C3ZI=";
+  };
+  # The bundled libraries are used as they are.
+  dontStrip = true;
+  dontPatchELF = true;
+  installPhase = ''
+    mkdir -p $out/share
+    bash ./pandoc-md2redmine --extract $out/share/pandoc-md2redmine
+    mkdir -p $out/bin
+    ln -s $out/share/pandoc-md2redmine/bin/pandoc-md2redmine $out/bin/
+  '';
+};
+```
+<!-- nix-install:end -->
+
 ### From source
 
 ```bash
