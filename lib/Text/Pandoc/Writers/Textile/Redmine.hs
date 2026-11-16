@@ -271,7 +271,6 @@ blockToTextile ::
   -- | Block element
   Block ->
   TW m Text
-blockToTextile _ Null = return ""
 -- 利便性のための hack
 -- A macro ends at the first "}}", so a collapse inside another one cannot be
 -- expressed; it is expanded, with its label as a bold line.
@@ -285,9 +284,12 @@ blockToTextile opts (Div (_, ["collapse"], keyvals) bs) = do
 blockToTextile opts (Div _ bs) = blockListToTextile opts bs
 blockToTextile opts (Plain inlines) =
   inlineListToTextile opts (dropTrailingBreaks inlines)
--- title beginning with fig: indicates that the image is a figure
-blockToTextile opts (Para [Image attr txt (src, T.stripPrefix "fig:" -> Just tit)]) =
-  blockToTextile opts (Para [Image attr txt (src, tit)])
+-- Redmine has no figures; the image stands as a paragraph of its own.
+blockToTextile opts (Figure _ _ body) =
+  blockListToTextile opts (map plainToPara body)
+  where
+    plainToPara (Plain inlines) = Para inlines
+    plainToPara b = b
 blockToTextile opts (Para inlines) = do
   listLevel <- gets stListLevel
   contents <- inlineListToTextile opts (dropTrailingBreaks inlines)

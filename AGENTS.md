@@ -5,7 +5,7 @@
 `pandoc-md2redmine` is a Markdown to Redmine Textile converter built with Haskell and Pandoc. The project converts Markdown documents to Redmine's wiki format (Textile).
 
 **Key Technologies:**
-- Haskell with GHC 8.10.7
+- Haskell with GHC 9.10
 - Pandoc for document conversion
 - Hspec + hspec-golden for testing
 - Cabal for build management

@@ -14,9 +14,15 @@ let
   inherit (pkgs) lib;
   ghc = package.compiler;
 
+  # A compound license, such as GMP's, becomes one SPDX expression.
+  licenseName = x:
+    if x ? operator
+    then "(" + lib.concatMapStringsSep " ${x.operator} " licenseName x.licenses + ")"
+    else x.spdxId or x.shortName or "unknown";
+
   licenseOf = drv:
     let l = drv.meta.license or [ ];
-    in map (x: x.spdxId or x.shortName or "unknown") (lib.toList l);
+    in map licenseName (lib.toList l);
 
   storePath = p: "${p}";
 
@@ -51,9 +57,17 @@ let
     { drv = pkgs.libffi; extraNotices = [ ]; }
     # zlib has no LICENSE file; README carries the same license text as zlib.h.
     { drv = pkgs.zlib; extraNotices = [ "README" ]; }
+    # GHC's runtime loads libdw (for stack traces) and libnuma; libdw brings
+    # in libelf and the compression libraries below.
+    { drv = pkgs.elfutils; extraNotices = [ ]; }
+    # Both sources are directories unpacked from GitHub, each named "source".
+    { drv = pkgs.numactl; extraNotices = [ ]; srcName = "numactl-${pkgs.numactl.version}"; }
+    { drv = pkgs.zstd; extraNotices = [ ]; srcName = "zstd-${pkgs.zstd.version}"; }
+    { drv = pkgs.xz; extraNotices = [ ]; }
+    { drv = pkgs.bzip2; extraNotices = [ ]; }
   ];
 
-  nativeComponent = { drv, extraNotices }: {
+  nativeComponent = { drv, extraNotices, srcName ? null }: {
     kind = "native";
     name = drv.pname;
     inherit (drv) version;
@@ -63,7 +77,7 @@ let
     patches = map storePath (drv.patches or [ ]);
     inherit extraNotices;
     outPaths = [ (storePath drv.out) ];
-  };
+  } // lib.optionalAttrs (srcName != null) { inherit srcName; };
 
   ghcComponent = {
     kind = "ghc";

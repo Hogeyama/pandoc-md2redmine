@@ -16,7 +16,7 @@
 
   outputs = { self, nixpkgs, flake-utils, nix-bundle-elf, ... }:
     let
-      compiler = "ghc8107";
+      compiler = "ghc910";
       supportedSystems = [ "x86_64-linux" ];
 
       outputs-overlay = pkgs: prev: {

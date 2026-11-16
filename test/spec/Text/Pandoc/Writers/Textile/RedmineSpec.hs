@@ -59,7 +59,7 @@ goldenTest testName = unsafePerformIO $ do
       , encodePretty = id
       , writeToFile = Prelude.writeFile
       , readFromFile = Prelude.readFile
-      , testName = testName
+      , goldenFile = dir <> "/" <> testName <> "/golden"
+      , actualFile = Just (dir <> "/" <> testName <> "/actual")
       , failFirstTime = False
-      , directory = dir
       }

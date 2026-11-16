@@ -5,7 +5,8 @@ Input is a JSON description of every component linked into the distributed
 binary (see default.nix). The output directory receives:
 
   licenses/    notices to ship next to the binary
-  sources/     source archives and the patches nixpkgs applied to them
+  sources/     source archives and the patches nixpkgs applied to them; a
+               source that nixpkgs keeps unpacked is archived here
   components.json
                one record per component with its license and source hashes
 
@@ -15,6 +16,7 @@ loads a shared library that no listed native component provides.
 
 from __future__ import annotations
 
+import gzip
 import hashlib
 import json
 import re
@@ -49,24 +51,53 @@ def matches(rel: PurePosixPath, patterns: list[PurePosixPath]) -> bool:
 
 
 def read_members(
-    archive: Path, patterns: list[PurePosixPath]
+    src: Path, patterns: list[PurePosixPath]
 ) -> dict[PurePosixPath, bytes]:
-    """Read the regular files that could carry notices or notice metadata."""
+    """Read the regular files that could carry notices or notice metadata.
+
+    The source is an archive with a top directory, or an unpacked directory.
+    """
+
+    def wanted(rel: PurePosixPath) -> bool:
+        shallow = len(rel.parts) <= 3
+        return shallow or rel.suffix in (".cabal", ".xml") or matches(rel, patterns)
+
     found: dict[PurePosixPath, bytes] = {}
-    with tarfile.open(archive, "r:*") as tar:
+    if src.is_dir():
+        for path in sorted(src.rglob("*")):
+            rel = PurePosixPath(path.relative_to(src).as_posix())
+            if path.is_file() and not path.is_symlink() and wanted(rel):
+                found[rel] = path.read_bytes()
+        return found
+    with tarfile.open(src, "r:*") as tar:
         for m in tar:
             # Archives store identical files as hard links to the first copy.
             if not (m.isfile() or m.islnk()):
                 continue
             rel = strip_root(m.name)
-            if rel is None:
+            if rel is None or not wanted(rel):
                 continue
-            shallow = len(rel.parts) <= 3
-            if shallow or rel.suffix in (".cabal", ".xml") or matches(rel, patterns):
-                f = tar.extractfile(m)
-                if f is not None:
-                    found[rel] = f.read()
+            f = tar.extractfile(m)
+            if f is not None:
+                found[rel] = f.read()
     return found
+
+
+def pack_directory(src: Path, dest: Path, top: str) -> None:
+    """Archive a source directory reproducibly, under a top directory."""
+    with dest.open("wb") as raw, gzip.GzipFile(
+        filename="", mode="wb", fileobj=raw, mtime=0
+    ) as gz, tarfile.open(fileobj=gz, mode="w", format=tarfile.PAX_FORMAT) as tar:
+        for path in sorted(src.rglob("*")):
+            info = tar.gettarinfo(str(path), arcname=f"{top}/{path.relative_to(src).as_posix()}")
+            info.mtime = 1
+            info.uid = info.gid = 0
+            info.uname = info.gname = ""
+            if info.isfile():
+                with path.open("rb") as f:
+                    tar.addfile(info, f)
+            else:
+                tar.addfile(info)
 
 
 def cabal_license_files(members: dict[PurePosixPath, bytes]) -> set[PurePosixPath]:
@@ -182,8 +213,14 @@ def collect(component: dict, out: Path) -> dict:
 
     src_dir = out / "sources" / kind
     src_dir.mkdir(parents=True, exist_ok=True)
-    src_dest = src_dir / component.get("srcName", src.name.split("-", 1)[-1])
-    shutil.copyfile(src, src_dest)
+    src_name = component.get("srcName", src.name.split("-", 1)[-1])
+    src_dest = src_dir / (f"{src_name}.tar.gz" if src.is_dir() else src_name)
+    if src_dest.exists():
+        sys.exit(f"error: {cid} would overwrite {src_dest.relative_to(out)}; give it a srcName")
+    if src.is_dir():
+        pack_directory(src, src_dest, src_name)
+    else:
+        shutil.copyfile(src, src_dest)
     patches = []
     for p in component.get("patches", []):
         pdir = src_dir / f"{cid}-patches"

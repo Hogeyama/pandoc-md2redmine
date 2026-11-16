@@ -6,14 +6,19 @@ import RIO.Char (isDigit)
 import qualified RIO.Text as T
 import Text.Pandoc as Pandoc hiding (writeTextile)
 import Text.Pandoc.App as Pandoc
-import Text.Pandoc.Shared (eastAsianLineBreakFilter)
+import Text.Pandoc.Format (parseFlavoredFormat)
+import Text.Pandoc.Scripting (noEngine)
+import Text.Pandoc.Transforms (eastAsianLineBreakFilter)
 import Text.Pandoc.Writers.Textile.Redmine
 
 -- | Command line entry point. Accepts pandoc's options; @-f@ overrides the
 -- default Markdown dialect and @-o@ selects the output file.
 run :: IO ()
 run = do
-  opts <- parseOptions options defaultOpts
+  -- --help, --version and the like are answered here, and end the program.
+  opts <-
+    either (\info -> handleOptInfo noEngine info >> exitSuccess) pure
+      =<< parseOptions options defaultOpts
   out <- handleError =<< runIO (readInputs opts >>= convert opts)
   case optOutputFile opts of
     Just path | path /= "-" -> writeFileUtf8 path out
@@ -41,8 +46,8 @@ readInputs opts = case optInputFiles opts of
 convert :: Opt -> ByteString -> PandocIO Text
 convert opts input = do
   (reader, exts) <- case optFrom opts of
-    Nothing -> (,redmineMarkdownExtensions) . fst <$> getReader "markdown"
-    Just format -> getReader format
+    Nothing -> (,redmineMarkdownExtensions) . fst <$> (getReader =<< parseFlavoredFormat "markdown")
+    Just format -> getReader =<< parseFlavoredFormat format
   let prepare
         | isNothing (optFrom opts) = separateFences
         | otherwise = id
@@ -92,7 +97,6 @@ convert opts input = do
           , writerSetextHeaders = optSetextHeaders opts
           , writerEpubSubdirectory = T.pack $ optEpubSubdirectory opts
           , writerEpubFonts = optEpubFonts opts
-          , writerEpubChapterLevel = optEpubChapterLevel opts
           , writerTOCDepth = optTOCDepth opts
           , writerReferenceDoc = optReferenceDoc opts
           , writerPreferAscii = optAscii opts

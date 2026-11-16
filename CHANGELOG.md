@@ -1,5 +1,12 @@
 # Revision history for pandoc-md2redmine
 
+## Unreleased
+
+### Changed
+
+- Built with pandoc 3.7 and GHC 9.10 instead of pandoc 2.14 and GHC 8.10
+- The release archive also carries the shared libraries that the GHC 9.10 runtime loads (libdw and libelf from elfutils, libnuma, and the zstd, xz and bzip2 libraries), with their license notices and sources
+
 ## 0.2.0.0 -- 2026-11-16
 
 ### Added

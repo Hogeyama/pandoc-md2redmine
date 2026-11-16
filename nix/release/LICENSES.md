@@ -2,8 +2,10 @@
 
 The `pandoc-md2redmine` executable in this archive is a self-extracting
 bundle. It contains the program, which statically links the GHC runtime and
-every Haskell library it uses, and the shared libraries the program loads
-(glibc, GMP, libffi and zlib).
+every Haskell library it uses, and the shared libraries the program loads:
+glibc, GMP, libffi and zlib, and, for the GHC runtime, libdw and libelf from
+elfutils, libnuma from numactl, and the zstd, xz (liblzma) and bzip2 libraries
+that libdw uses.
 
 ## Terms for the executable as a whole
 
@@ -16,7 +18,8 @@ the definition for R, declares its license as "GPLv2" without stating
 whether later versions are allowed. The executable as a whole is therefore
 distributed under the terms of the GNU General Public License, version 2.
 The other components keep their own licenses, which are all compatible
-with GPLv2.
+with GPLv2. The libraries of elfutils are offered under GPL-2.0-or-later or
+LGPL-3.0-or-later; they are used here under GPL-2.0-or-later.
 
 ## Contents of this directory
 
