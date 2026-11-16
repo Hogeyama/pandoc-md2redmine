@@ -78,6 +78,12 @@ spec = do
     it "case22: should turn mermaid code blocks into the mermaid macro where a macro can hold them" $
       goldenTest "case22"
 
+    it "case23: should start a code block at a fence right after a line of text" $
+      goldenTest "case23"
+
+    it "case24: should close an unclosed code fence where its list item ends" $
+      goldenTest "case24"
+
 goldenTest :: FilePath -> Golden String
 goldenTest testName = unsafePerformIO $ do
   input <- readFileUtf8 (dir <> "/" <> testName <> "/input.md")

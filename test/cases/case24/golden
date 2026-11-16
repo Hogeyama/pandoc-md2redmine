@@ -1,0 +1,14 @@
+# unclosed
+<pre>
+code
+</pre>
+# next item
+#* nested
+<pre>
+nested code
+</pre>
+#* nested next
+# last
+<pre>
+more
+</pre>

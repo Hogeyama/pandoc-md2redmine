@@ -2,6 +2,7 @@ module Text.Pandoc.Md2Redmine (run, md2redmine) where
 
 import RIO
 import qualified RIO.ByteString as B
+import RIO.Char (isDigit)
 import qualified RIO.Text as T
 import Text.Pandoc as Pandoc hiding (writeTextile)
 import Text.Pandoc.App as Pandoc
@@ -42,6 +43,9 @@ convert opts input = do
   (reader, exts) <- case optFrom opts of
     Nothing -> (,redmineMarkdownExtensions) . fst <$> getReader "markdown"
     Just format -> getReader format
+  let prepare
+        | isNothing (optFrom opts) = separateFences
+        | otherwise = id
 
   let readerOpts =
         Pandoc.def
@@ -56,7 +60,7 @@ convert opts input = do
           }
 
   doc <- case reader of
-    TextReader r -> r readerOpts $ decodeUtf8Lenient input
+    TextReader r -> r readerOpts . prepare $ decodeUtf8Lenient input
     ByteStringReader r -> r readerOpts $ fromStrictBytes input
 
   let doc'
@@ -112,3 +116,53 @@ redmineMarkdownExtensions =
     . disableExtension Ext_blank_before_blockquote
     . disableExtension Ext_smart
     $ getDefaultExtensions "markdown"
+
+-- | Make code fences read the way GitHub reads them:
+--
+-- * An empty line is inserted before a fence that directly follows a line of
+--   text. pandoc's Markdown would read the fence as part of the paragraph
+--   when it is inside a list item.
+-- * An indented fence left open is closed where its list item ends, i.e. at
+--   a line indented less than the fence that starts a list item or is
+--   clearly outside the item. pandoc would run the code block on to the next
+--   fence.
+separateFences :: Text -> Text
+separateFences = T.unlines . go Nothing True . T.lines
+  where
+    -- the open fence, if inside a code block, and whether the previous line
+    -- was blank
+    go _ _ [] = []
+    go (Just fence@(c, n, indent)) _ (l : ls)
+      | closesFence fence l = l : go Nothing False ls
+      | leavesItem indent l = T.replicate indent " " <> T.replicate n (T.singleton c) : go Nothing False (l : ls)
+      | otherwise = l : go (Just fence) False ls
+    go Nothing prevBlank (l : ls) = case openingFence l of
+      Just fence
+        | prevBlank -> l : go (Just fence) False ls
+        | otherwise -> "" : l : go (Just fence) False ls
+      Nothing -> l : go Nothing (T.null (T.strip l)) ls
+    -- "```lang" or "~~~"; a backtick fence's info string cannot contain a
+    -- backtick, which rules out a code span such as "```x``` text".
+    openingFence l = case T.uncons body of
+      Just (c, _)
+        | c `elem` ("`~" :: String) ->
+          let (marks, info) = T.span (== c) body
+           in if T.length marks >= 3 && not (c == '`' && T.any (== '`') info)
+                then Just (c, T.length marks, indentation l)
+                else Nothing
+      _ -> Nothing
+      where
+        body = T.stripStart l
+    closesFence (c, n, _) l =
+      let body = T.strip l
+       in T.length body >= n && T.all (== c) body
+    -- A list item's content may start up to 3 columns left of the fence.
+    leavesItem fenceIndent l =
+      not (T.null (T.strip l))
+        && indentation l < fenceIndent
+        && (indentation l + 3 < fenceIndent || startsListItem (T.stripStart l))
+    startsListItem t =
+      let (digits, rest) = T.span isDigit t
+       in any (`T.isPrefixOf` t) ["* ", "- ", "+ "]
+            || (not (T.null digits) && any (`T.isPrefixOf` rest) [". ", ") "])
+    indentation = T.length . T.takeWhile (== ' ')

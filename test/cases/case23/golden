@@ -1,0 +1,20 @@
+# log in
+<pre><code class="bash">
+$ ssh host
+</code></pre>
+# run
+<pre>
+run
+</pre>
+# done
+
+text
+
+<pre>
+code right after text
+
+still code
+</pre>
+
+
+@inline@ code span at the start of a line
