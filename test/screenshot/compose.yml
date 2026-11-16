@@ -1,0 +1,19 @@
+name: md2redmine-screenshot
+services:
+  redmica:
+    build: .
+    volumes:
+      - ../cases:/cases:ro
+      - ./seed.rb:/seed.rb:ro
+  shooter:
+    image: mcr.microsoft.com/playwright:v1.49.1-noble
+    profiles: [shoot]
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+    environment:
+      HOME: /tmp
+      REDMINE_URL: http://redmica:3000
+    working_dir: /tmp
+    volumes:
+      - ../cases:/cases
+      - ./shoot.mjs:/shoot.mjs:ro
+    command: sh -c "npm install --silent --no-save playwright@1.49.1 && cp /shoot.mjs . && node shoot.mjs"

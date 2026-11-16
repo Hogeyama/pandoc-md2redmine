@@ -76,6 +76,23 @@ diff test/cases/caseXX/golden test/cases/caseXX/actual
 cp test/cases/caseXX/actual test/cases/caseXX/golden
 ```
 
+### Screenshots of the golden files
+
+Each `test/cases/caseXX/redmica.png` shows how RedMica renders that case's
+`golden`. **Whenever you add or update a golden file, retake the screenshots**
+and commit them with it:
+
+```bash
+make screenshots
+```
+
+This needs only Docker. It starts RedMica 3.1.7 with RedMica UI Extension
+v0.6.0 (which renders the `{{mermaid}}` macro), publishes every golden file as
+a wiki page in Textile, and takes the screenshots with Playwright. Look at the
+screenshots of the cases you changed to confirm that Redmine renders them as
+intended. RedMica 3.1.7 itself does not render Mermaid, so mermaid code blocks
+(`<pre><code class="mermaid">`) stay code blocks in the screenshots.
+
 ## Code Structure
 
 ```
@@ -92,6 +109,8 @@ test/
     case01/input.md                    # Test input
     case01/golden                      # Expected output
     case01/actual                      # Generated when test fails
+    case01/redmica.png                 # Screenshot of golden on RedMica
+  screenshot/                          # Docker setup for `make screenshots`
   spec/
     Text/Pandoc/Writers/Textile/
       RedmineSpec.hs                   # Test specifications

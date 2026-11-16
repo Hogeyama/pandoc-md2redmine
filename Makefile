@@ -19,6 +19,10 @@ test:
 	fi
 	cabal run spec
 
+.PHONY: screenshots
+screenshots:
+	test/screenshot/run.sh
+
 .PHONY: clean
 clean:
 	cabal clean
