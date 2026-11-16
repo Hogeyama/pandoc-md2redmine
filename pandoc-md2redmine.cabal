@@ -5,7 +5,7 @@ synopsis:        Markdown to Redmine Textile converter
 description:     See README for more info
 homepage:        https://github.com/Hogeyama/haskell-template
 bug-reports:     https://github.com/Hogeyama/haskell-template/issues
-license:         BSD-3-Clause
+license:         GPL-2.0-or-later
 license-file:    LICENSE
 author:          Hogeyama
 maintainer:      Hogeyama <gan13027830@gmail.com>
