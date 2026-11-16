@@ -33,6 +33,7 @@
 - A collapse inside a list no longer ends the list; labels containing commas or quotes are quoted
 - A code fence right after a line of text in a list item starts a code block, and a fence left open is closed where its list item ends, as on GitHub
 - Text after a code block in a list item follows `</pre>` directly, so Redmine does not add an empty line there
+- The executable no longer links GNU readline. It came in through the system Lua, and its license (GPL-3.0-or-later) cannot be combined with skylighting's syntax definition for R, which allows GPL version 2 only; the Lua bundled with hslua is used instead
 
 ## 0.1.0.1 -- 2025-12-19
 
