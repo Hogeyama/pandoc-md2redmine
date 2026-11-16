@@ -1,6 +1,6 @@
 # Revision history for pandoc-md2redmine
 
-## Unreleased
+## 0.2.0.0 -- 2026-11-16
 
 ### Added
 
@@ -9,6 +9,7 @@
 
 ### Changed
 
+- `Text.Pandoc.Md2Redmine.run` writes the converted document itself and returns `()` instead of the text
 - Markdown input recognizes headings, block quotes and lists without a preceding blank line
 - A line break between Japanese characters no longer becomes a space
 - `--` and quotes are kept as typed instead of becoming typographic punctuation
