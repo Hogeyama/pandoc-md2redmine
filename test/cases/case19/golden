@@ -1,0 +1,17 @@
+# first
+#* {{collapse(log)
+<pre>
+x
+</pre>
+}}
+#* after
+# second
+
+* last item
+{{collapse
+<pre>
+y
+</pre>
+}}
+
+h2. heading

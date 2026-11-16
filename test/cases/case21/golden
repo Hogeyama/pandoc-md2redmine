@@ -1,0 +1,17 @@
+Grid with blocks:
+
+|_. Name|_. Note|
+|a|line1
+* x
+* y|
+|b|<pre>
+code
+</pre>|
+
+Multiline:
+
+Here's the caption. It, too, may span multiple lines.
+
+|_. Centered Header|_. Default Aligned|_. Right Aligned|_. Left Aligned|
+|=. First|row|>. 12.0|<. Example of a row that spans multiple lines.|
+|=. Second|row|>. 5.0|<. Here's another one. Note the blank line between rows.|

@@ -1,0 +1,11 @@
+&#42;not bold* and &#95;not em_ and &#45;not del- and &#43;not ins+ and (&#42;paren*)
+
+&#104;1. is not a heading
+
+&#42; is not a list item
+
+&#35; is not an ordered list item
+
+pipe &#124; in text, a&#91;0] is not a footnote, &#38;lt; is literal
+
+&#33;notimage! and &#64;not code@ but user@example.com and #123 stay

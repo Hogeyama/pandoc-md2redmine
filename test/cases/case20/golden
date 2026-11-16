@@ -1,0 +1,21 @@
+{{collapse(Log one)
+body
+}}
+
+* item
+{{collapse("Show, then hide ""quoted""")
+<pre>
+x
+</pre>
+}}
+* next
+
+{{collapse
+no summary
+
+*inner*
+
+nested
+}}
+
+h2. after
