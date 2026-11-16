@@ -1,6 +1,6 @@
 # Revision history for pandoc-md2redmine
 
-## Unreleased
+## 0.2.0.1 -- 2026-11-17
 
 ### Changed
 
