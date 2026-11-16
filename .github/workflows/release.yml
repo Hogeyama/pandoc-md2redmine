@@ -41,7 +41,7 @@ jobs:
           sha256sum -c "$base-sha256.txt"
           tar -tzf "$base.tar.gz" > "$RUNNER_TEMP/contents.txt"
           for f in "$base/pandoc-md2redmine" "$base/licenses/README.md" \
-                   "$base/licenses/self/" "$base/licenses/ghc/" \
+                   "$base/licenses/self/" "$base/licenses/bundler/" "$base/licenses/ghc/" \
                    "$base/licenses/haskell/" "$base/licenses/native/"; do
             grep -qxF "$f" "$RUNNER_TEMP/contents.txt" || { echo "missing $f" >&2; exit 1; }
           done

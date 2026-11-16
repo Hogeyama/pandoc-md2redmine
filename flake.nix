@@ -35,7 +35,6 @@
         packages = {
           default = pkgs.my-package;
           bundled = nix-bundle-elf.lib.${system}.single-exe {
-            inherit pkgs;
             name = "pandoc-md2redmine";
             target = "${pkgs.my-package}/bin/pandoc-md2redmine";
           };
@@ -43,6 +42,7 @@
             inherit pkgs;
             package = pkgs.my-package;
             bundled = self.packages.${system}.bundled;
+            bundler = nix-bundle-elf;
             src = self;
           };
         };
