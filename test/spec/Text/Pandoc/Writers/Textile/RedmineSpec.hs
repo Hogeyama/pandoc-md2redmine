@@ -84,6 +84,9 @@ spec = do
     it "case24: should close an unclosed code fence where its list item ends" $
       goldenTest "case24"
 
+    it "case25: should continue text right after a code block in a list item" $
+      goldenTest "case25"
+
 goldenTest :: FilePath -> Golden String
 goldenTest testName = unsafePerformIO $ do
   input <- readFileUtf8 (dir <> "/" <> testName <> "/input.md")

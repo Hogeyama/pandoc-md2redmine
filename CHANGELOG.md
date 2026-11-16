@@ -32,6 +32,7 @@
 - A hard line break (two trailing spaces) at the end of a list item no longer splits the list
 - A collapse inside a list no longer ends the list; labels containing commas or quotes are quoted
 - A code fence right after a line of text in a list item starts a code block, and a fence left open is closed where its list item ends, as on GitHub
+- Text after a code block in a list item follows `</pre>` directly, so Redmine does not add an empty line there
 
 ## 0.1.0.1 -- 2025-12-19
 

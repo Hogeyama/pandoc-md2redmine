@@ -486,8 +486,20 @@ blockListToTextile ::
   -- | List of block elements
   [Block] ->
   TW m Text
-blockListToTextile opts blocks =
-  T.intercalate "\n" <$> mapM (blockToTextile opts) blocks
+blockListToTextile opts blocks = do
+  texts <- mapM (blockToTextile opts) blocks
+  listLevel <- gets stListLevel
+  let rendered = zip blocks texts
+      -- In a list item Redmine turns a line break into <br />, which after
+      -- </pre> shows as an empty line; text can follow </pre> directly.
+      separator (_, prev) (next, _)
+        | not (null listLevel) && "</pre>" `T.isSuffixOf` prev && isText next = ""
+        | otherwise = "\n"
+      isText Para {} = True
+      isText Plain {} = True
+      isText _ = False
+  return . T.concat $
+    take 1 texts <> concat (zipWith (\a b -> [separator a b, snd b]) rendered (drop 1 rendered))
 
 ------------------------------------------------------------------------------
 -- Inlines
